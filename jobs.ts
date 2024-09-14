@@ -44,7 +44,7 @@ namespace Dominator {
 			|| (typeof settings.setServerId == 'function' && settings.setServerId())
 			|| Random.id();
 
-		collection.find({_id: DOMINATOR_ID}).observe({
+		await collection.find({_id: DOMINATOR_ID}).observeAsync({
 			changed: (newPing) => _observerSync(newPing),
 		});
 
@@ -104,7 +104,7 @@ namespace Dominator {
 		if ((lastPing.pausedJobs || []).join() != oldPausedJobs.join()) {
 			// the list of paused jobs has changed - update the query for the job observer
 			// needs dominator.lastPing.pausedJobs to be up-to-date so do lastPing = newPing above
-			Queue.restartSync();
+			Queue.restartAsync().then();
 		}
 		if (_takeControlTimeout) {
 			Meteor.clearTimeout(_takeControlTimeout);
@@ -122,7 +122,7 @@ namespace Dominator {
 	async function _takeControlAsync(reason: string) {
 		log('Jobs', 'takeControl', reason);
 		await _pingAsync();
-		Queue.startSync();
+		await Queue.startAsync();
 	}
 
 	function _relinquishControlSync() {
@@ -459,7 +459,7 @@ namespace Queue {
 	var _executing = false;
 	var _awaitAsyncJobs = new Set<string>();
 
-	export function startSync() {
+	export async function startAsync() {
 		if (_handle && _handle != PAUSED) {
 			stopSync(); // this also clears any existing job timeout
 		}
@@ -467,14 +467,14 @@ namespace Queue {
 		log('Jobs', 'queue.start paused:', pausedJobs);
 
 		// don't bother creating an observer if all jobs are paused
-		_handle = pausedJobs[0]=='*' ? PAUSED : Jobs.collection.find({
+		_handle = pausedJobs[0]=='*' ? PAUSED : await Jobs.collection.find({
 			state: "pending",
 			name: {$nin: pausedJobs},
 		}, {
 			limit: 1,
 			sort: {due: 1},
 			fields: {name: 1, due: 1},
-		}).observe({
+		}).observeAsync({
 			changed: (job) => _observerSync('changed', job),
 			added: (job) => _observerSync('added', job),
 		});
@@ -489,11 +489,11 @@ namespace Queue {
 		_observerSync('stop');
 	}
 
-	export function restartSync() {
+	export async function restartAsync() {
 		// this is called by Jobs.start() and Jobs.stop() when the list of pausedJobs changes
 		// only restart the queue if we're already watching it (maybe jobs were started/paused inside _executeJobs())
 		if (_handle) {
-			startSync();
+			await startAsync();
 		}
 	}
 
@@ -513,7 +513,7 @@ namespace Queue {
 
 			_timeout = nextJob && !_executing ? Meteor.setTimeout(()=> {
 				_timeout = null;
-				_executeJobsAsync()
+				_executeJobsAsync().then();
 			}, msTillNextJob) : null;
 		}
 	}
@@ -562,10 +562,11 @@ namespace Queue {
 		} catch(e) {
 			console.warn('Jobs', 'executeJobs ERROR');
 			console.warn(e);
+			console.warn(e);
 		}
 
 		_executing = false;
-		startSync();
+		await startAsync();
 	}
 
 	export async function executeJobAsync(job: Jobs.JobDocument) {

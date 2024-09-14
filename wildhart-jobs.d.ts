@@ -1,3 +1,5 @@
+import {JobInConfig} from "meteor/wildhart:jobs";
+
 type JobOrId = string | false | null | {_id: string};
 
 declare module 'meteor/wildhart:jobs' {
@@ -32,8 +34,8 @@ declare module 'meteor/wildhart:jobs' {
         }
 
         interface JobConfig {
-            in: any;
-            on: any;
+            in: JobInConfig;
+            on: JobInConfig;
             priority: number;
             date: Date;
             state: string;
