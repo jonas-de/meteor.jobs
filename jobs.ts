@@ -409,7 +409,7 @@ export namespace Jobs {
 	export const startAsync = Dominator.startAsync;
 	export const stopAsync = Dominator.stopAsync;
 
-	function getDateFromConfig(config: Partial<Jobs.JobConfig>) {
+	export function getDateFromConfig(config: Partial<Jobs.JobConfig>) {
 		// https://github.com/msavin/SteveJobs..meteor.jobs.scheduler.queue.background.tasks/blob/031fdf5051b2f2581a47f64ab5b54ffbb6893cf8/package/server/imports/utilities/helpers/date.js
 		check(config, Match.ObjectIncluding({
 			date: Match.Maybe(Date),

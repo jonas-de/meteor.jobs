@@ -87,6 +87,7 @@ declare module 'meteor/wildhart:jobs' {
         function countPendingAsync(jobName: string, ...args: any[]): Promise<number>;
         function startAsync(jobNames?: string | string[]): Promise<void>;
         function stopAsync(jobNames?: string | string[]): Promise<void>;
+        function getDateFromConfig(config: Partial<Jobs.JobConfig>)
     }
 
 	export class TypedJob<TArgs extends any[]> {
