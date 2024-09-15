@@ -620,7 +620,7 @@ namespace Queue {
 
 		try {
 			await setJobStateAsync(job._id, 'executing');
-			const res = Jobs.jobs[job.name].apply(self, job.arguments);
+			const res = Jobs.jobs[job.name].apply(self, Array.isArray(job.arguments) ? job.arguments : [job.arguments]);
 			if (res?.then) {
 				isAsync = true
 				if (job.awaitAsync) {
